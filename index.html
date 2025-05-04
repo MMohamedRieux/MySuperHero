@@ -1,72 +1,60 @@
-  function checkGrammar() {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superhero Grammar Checker</title>
+    <style>
+        textarea { width: 100%; }
+        img { width: 200px; height: 200px; margin: 10px; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch/3.6.2/fetch.min.js"></script>
+</head>
+<body>
+    <h1>Superhero Description Grammar Checker</h1>
+    <textarea id="description" rows="10" placeholder="Describe your superhero..."></textarea>
+    <br>
+    <button onclick="checkGrammar()">Check Grammar</button>
+    <div id="message"></div>
+    <div id="images"></div>
 
+    <script>
+        function checkGrammar() {
             const description = document.getElementById('description').value;
-
-            // Mock grammar check; replace with actual grammar checking logic
-
-            const isCorrect = description.length > 10; // Placeholder: consider text with more than 10 chars as "correct"
-
-
             const messageDiv = document.getElementById('message');
-
             const imagesDiv = document.getElementById('images');
+            imagesDiv.innerHTML = '';
 
-            imagesDiv.innerHTML = ''; // Clear previous images
+            fetch('https://api.languagetool.org/v2/check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `text=${encodeURIComponent(description)}&language=en-GB`
+            })
+            .then(response => response.json())
+            .then(data => {
+                const mistakes = data.matches.length;
 
-
-            if (isCorrect) {
-
-                messageDiv.textContent = "Your grammar is correct! Generating images...";
-
-                
-
-                // Mock API request to the AI generator
-
-                fetch('https://perchance.org/ai-text-to-image-generator', {
-
-                    method: 'POST',
-
-                    body: JSON.stringify({ prompt: description }),
-
-                    headers: {
-
-                        'Content-Type': 'application/json'
-
-                    }
-
-                }).then(response => response.json())
-
-                  .then(data => displayImages(data))
-
-                  .catch(error => console.error('Error:', error));
-
-            } else {
-
-                messageDiv.textContent = "Your text is not correct enough, please consider changing it...";
-
-            }
-
-        }
-
-
-        function displayImages(data) {
-
-            const imagesDiv = document.getElementById('images');
-
-            // Mock: Assume data is an array of image URLs
-
-            const imageUrls = ["/api/placeholder/200/200", "/api/placeholder/200/200", "/api/placeholder/200/200"];
-
-            imageUrls.forEach(url => {
-
-                const img = document.createElement('img');
-
-                img.src = url;
-
-                img.alt = 'Generated';
-
-                imagesDiv.appendChild(img);
-
+                if (mistakes <= 2) {
+                    messageDiv.textContent = "Your grammar is correct! Generating images...";
+                    // Mock image URLs
+                    const imageUrls = ["/api/placeholder/200/200", "/api/placeholder/200/200", "/api/placeholder/200/200"];
+                    imageUrls.forEach(url => {
+                        const img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Generated';
+                        imagesDiv.appendChild(img);
+                    });
+                } else {
+                    messageDiv.textContent = `Your text has ${mistakes} mistakes. Please consider changing it...`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                messageDiv.textContent = "There was an error checking your text. Please try again later.";
             });
-
-        } /script> /body> /html>
+        }
+    </script>
+</body>
+</html>
